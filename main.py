@@ -4,9 +4,9 @@ from astrbot.core.star.base import Star
 from astrbot.core.star.context import Context
 from astrbot.core.star.register import register_star as register
 
-from jrrp import get_jrrp
-from model import init_db
-from utils import get_plugin_data_path
+from .jrrp import get_jrrp
+from .model import init_db
+from .utils import get_plugin_data_path
 
 
 @register("helloworld", "YourName", "一个简单的 Hello World 插件", "1.0.0")

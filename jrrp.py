@@ -4,7 +4,7 @@ import random
 from astrbot.core.platform.astr_message_event import AstrMessageEvent
 from astrbot.core.star.base import Star
 
-from model import Jrrp
+from .model import Jrrp
 
 
 async def get_jrrp(bot: Star, event: AstrMessageEvent) -> int:
