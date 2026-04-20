@@ -3,5 +3,11 @@
     "description": "插件在回复中显示的昵称",
     "type": "string",
     "default": "沫纯"
+  },
+  "style": {
+    "description": "回复模板风格",
+    "type": "string",
+    "default": "mochun",
+    "options": ["mochun"]
   }
 }

@@ -5,6 +5,7 @@ from astrbot.core.platform.astr_message_event import AstrMessageEvent
 from astrbot.core.star.base import Star
 
 from .model import Jrrp
+from .utils import render_text_template
 
 
 async def get_jrrp(bot: Star, event: AstrMessageEvent) -> int:
@@ -29,6 +30,16 @@ async def get_jrrp(bot: Star, event: AstrMessageEvent) -> int:
 async def send_jrrp_msg(bot: Star, event: AstrMessageEvent):
     jrrp = await get_jrrp(bot, event)
     nickname = bot.config.get("nickname") or bot.name
-    yield event.plain_result(
-        f"{nickname}认为{event.get_sender_name()}今天的人品是{jrrp}喵w~"
+    style_name = bot.config.get("style")
+    sender_name = event.get_sender_name()
+    message = render_text_template(
+        style_name,
+        "bot.reply.jrrp",
+        {
+            "nickname": nickname,
+            "sender_name": sender_name,
+            "jrrp": jrrp,
+        },
+        "{nickname}认为{sender_name}今天的人品是{jrrp}喵w~",
     )
+    yield event.plain_result(message)

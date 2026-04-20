@@ -1,0 +1,7 @@
+{
+  "bot": {
+    "reply": {
+      "jrrp": "{nickname}认为{sender_name}今天的人品是{jrrp}喵w~"
+    }
+  }
+}
