@@ -1,4 +1,5 @@
 from astrbot.api.event import filter
+from astrbot.core.config import AstrBotConfig
 from astrbot.core.platform.astr_message_event import AstrMessageEvent
 from astrbot.core.star.base import Star
 from astrbot.core.star.context import Context
@@ -11,8 +12,9 @@ from .utils import get_plugin_data_path
 
 @register("helloworld", "YourName", "一个简单的 Hello World 插件", "1.0.0")
 class MyPlugin(Star):
-    def __init__(self, context: Context):
+    def __init__(self, context: Context, config: AstrBotConfig):
         super().__init__(context)
+        self.config = config
 
     async def initialize(self):
         """可选择实现异步的插件初始化方法，当实例化该插件类之后会自动调用该方法。"""
@@ -22,8 +24,9 @@ class MyPlugin(Star):
     @filter.command("jrrp")
     async def jrrp(self, event: AstrMessageEvent):
         jrrp = await get_jrrp(self, event)
+        nickname = self.config.get("nickname") or self.name
         yield event.plain_result(
-            f"{self.name}认为{event.get_sender_name()}今天的人品是{jrrp}喵w~"
+            f"{nickname}认为{event.get_sender_name()}今天的人品是{jrrp}喵w~"
         )
 
     async def terminate(self):

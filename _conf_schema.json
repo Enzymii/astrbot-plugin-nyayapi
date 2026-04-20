@@ -1,0 +1,7 @@
+{
+  "nickname": {
+    "description": "插件在回复中显示的昵称",
+    "type": "string",
+    "default": "沫纯"
+  }
+}
