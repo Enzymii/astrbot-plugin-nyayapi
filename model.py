@@ -21,7 +21,7 @@ class Jrrp(BaseModel):
     date = DateField()
     value = IntegerField(constraints=[Check("value >= 1 AND value <= 100")])
 
-    class Meta(BaseModel.Meta):
+    class Meta:  # pyright: ignore[reportIncompatibleVariableOverride]
         table_name = "jrrp"
         indexes = ((("platform", "source_id", "user_id", "date"), True),)
 
