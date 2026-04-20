@@ -7,4 +7,4 @@ repo: https://github.com/Enzymii/astrbot-plugin-nyayapi # 插件的仓库地址
 support_platform:
   - aiocqhttp
 astrbot_version:
-  - >=4.23.0
+  - ">=4.23.0"
