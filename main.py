@@ -5,7 +5,8 @@ from astrbot.core.star.base import Star
 from astrbot.core.star.context import Context
 from astrbot.core.star.register import register_star as register
 
-from .jrrp import get_jrrp
+from .jrrp import send_jrrp_msg
+from .message_handler import message_handler
 from .model import init_db
 from .utils import get_plugin_data_path
 
@@ -23,11 +24,13 @@ class MyPlugin(Star):
 
     @filter.command("jrrp")
     async def jrrp(self, event: AstrMessageEvent):
-        jrrp = await get_jrrp(self, event)
-        nickname = self.config.get("nickname") or self.name
-        yield event.plain_result(
-            f"{nickname}认为{event.get_sender_name()}今天的人品是{jrrp}喵w~"
-        )
+        async for result in send_jrrp_msg(self, event):
+            yield result
+
+    @filter.event_message_type(filter.EventMessageType.ALL)
+    async def allMessageHandler(self, event: AstrMessageEvent):
+        async for result in message_handler(self, event):
+            yield result
 
     async def terminate(self):
         """可选择实现异步的插件销毁方法，当插件被卸载/停用时会调用。"""
