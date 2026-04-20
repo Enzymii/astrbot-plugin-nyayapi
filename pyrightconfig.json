@@ -1,0 +1,12 @@
+{
+  "venvPath": "C:/Users/Enzymiia/anaconda3/envs",
+  "venv": "astrbot-plugin-nyayapi",
+  "executionEnvironments": [
+    {
+      "root": ".",
+      "extraPaths": [
+        "../../astrbot"
+      ]
+    }
+  ]
+}
