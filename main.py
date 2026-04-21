@@ -5,6 +5,7 @@ from astrbot.core.star.base import Star
 from astrbot.core.star.context import Context
 from astrbot.core.star.register import register_star as register
 
+from .group_message_handler import group_message_handler
 from .jrrp import send_jrrp_msg
 from .message_handler import message_handler
 from .model import init_db
@@ -30,6 +31,11 @@ class MyPlugin(Star):
     @filter.event_message_type(filter.EventMessageType.ALL)
     async def allMessageHandler(self, event: AstrMessageEvent):
         async for result in message_handler(self, event):
+            yield result
+
+    @filter.event_message_type(filter.EventMessageType.GROUP_MESSAGE)
+    async def groupMessageHandler(self, event: AstrMessageEvent):
+        async for result in group_message_handler(self, event):
             yield result
 
     async def terminate(self):

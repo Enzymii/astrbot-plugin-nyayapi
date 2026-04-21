@@ -9,5 +9,15 @@
     "type": "string",
     "default": "mochun",
     "options": ["mochun"]
+  },
+  "repeat_match": {
+    "description": "触发复读的正则表达式，留空表示关闭关键词复读",
+    "type": "string",
+    "default": ""
+  },
+  "repeat_time": {
+    "description": "群内连续相同消息达到该次数时复读，0表示关闭该模式",
+    "type": "number",
+    "default": 5
   }
 }

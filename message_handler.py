@@ -9,3 +9,4 @@ async def message_handler(bot: Star, event: AstrMessageEvent):
     if message_str == ".jrrp":
         async for result in send_jrrp_msg(bot, event):
             yield result
+            return
