@@ -17,7 +17,7 @@
   },
   "repeat_time": {
     "description": "群内连续相同消息达到该次数时复读，0表示关闭该模式",
-    "type": "number",
+    "type": "int",
     "default": 5
   }
 }
