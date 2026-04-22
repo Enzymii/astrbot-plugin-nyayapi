@@ -5,10 +5,39 @@ from pathlib import Path
 from astrbot.core.utils.astrbot_path import get_astrbot_data_path
 
 fallback = "mochun"
+_EMOJI_QCID_MAP: dict[str, int] | None = None
 
 
 def get_plugin_data_path(plugin_name: str) -> Path:
     return Path(get_astrbot_data_path()) / "plugin_data" / plugin_name
+
+
+def get_emoji_qcid_map() -> dict[str, int]:
+    """读取并缓存本地 emojiId -> qcid 映射。"""
+    global _EMOJI_QCID_MAP
+    if _EMOJI_QCID_MAP is not None:
+        return _EMOJI_QCID_MAP
+
+    index_path = Path(__file__).with_name("config").joinpath("qq_emoji_index.json")
+    try:
+        with index_path.open("r", encoding="utf-8") as f:
+            data = json.load(f)
+    except (OSError, json.JSONDecodeError):
+        _EMOJI_QCID_MAP = {}
+        return _EMOJI_QCID_MAP
+
+    mapping: dict[str, int] = {}
+    if isinstance(data, list):
+        for item in data:
+            if not isinstance(item, dict):
+                continue
+            emoji_id = item.get("emojiId")
+            qcid = item.get("qcid")
+            if isinstance(emoji_id, str) and isinstance(qcid, int):
+                mapping[emoji_id] = qcid
+
+    _EMOJI_QCID_MAP = mapping
+    return _EMOJI_QCID_MAP
 
 
 class _SafeFormatDict(dict[str, object]):

@@ -2,7 +2,7 @@
   "bot": {
     "reply": {
       "jrrp": "{nickname}认为{sender_name}今天的人品是{jrrp}喵w~",
-      "emoji_like_failed": "{nickname}不知道要贴什么表情喵w~"
+      "emoji_like_failed": "{nickname}找不到要贴的表情喵w~"
     }
   }
 }

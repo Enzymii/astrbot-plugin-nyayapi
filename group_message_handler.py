@@ -1,46 +1,12 @@
 import asyncio
-import json
 import re
-from pathlib import Path
 
-from astrbot.core.message.components import Face, Plain
-from astrbot.core.platform.sources.aiocqhttp.aiocqhttp_message_event import (
-    AiocqhttpMessageEvent,
-)
+from astrbot.core.message.components import At, Face, Plain, Reply
+from astrbot.core.platform.astr_message_event import AstrMessageEvent
 from astrbot.core.star.base import Star
 
 from .message_handler import should_exclude_from_group_repeat
-from .utils import render_text_template
-
-_EMOJI_QCID_MAP: dict[str, int] | None = None
-
-
-def _get_emoji_qcid_map() -> dict[str, int]:
-    """读取并缓存本地 emojiId -> qcid 映射。"""
-    global _EMOJI_QCID_MAP
-    if _EMOJI_QCID_MAP is not None:
-        return _EMOJI_QCID_MAP
-
-    index_path = Path(__file__).with_name("config").joinpath("qq_emoji_index.json")
-    try:
-        with index_path.open("r", encoding="utf-8") as f:
-            data = json.load(f)
-    except (OSError, json.JSONDecodeError):
-        _EMOJI_QCID_MAP = {}
-        return _EMOJI_QCID_MAP
-
-    mapping: dict[str, int] = {}
-    if isinstance(data, list):
-        for item in data:
-            if not isinstance(item, dict):
-                continue
-            emoji_id = item.get("emojiId")
-            qcid = item.get("qcid")
-            if isinstance(emoji_id, str) and isinstance(qcid, int):
-                mapping[emoji_id] = qcid
-
-    _EMOJI_QCID_MAP = mapping
-    return _EMOJI_QCID_MAP
+from .utils import get_emoji_qcid_map, render_text_template
 
 
 def _raw_message_segments(message_obj: object) -> list | None:
@@ -63,9 +29,10 @@ def _message_segments_are_all_text(segments: list | None) -> bool:
     return all(isinstance(seg, Plain) for seg in segments)
 
 
-async def group_message_handler(bot: Star, event: AiocqhttpMessageEvent):
+async def group_message_handler(bot: Star, event: AstrMessageEvent):
     group_id = event.get_group_id()
     message = _raw_message_segments(event.message_obj)
+    self_id = event.message_obj.self_id
     is_plain_text = _message_segments_are_all_text(message)
     message_str = (event.message_str or "").strip()
 
@@ -117,12 +84,22 @@ async def group_message_handler(bot: Star, event: AiocqhttpMessageEvent):
 
     # 实现对指令的处理
     if message:
-        first_segment = message[0]
-        if isinstance(first_segment, Plain):
-            cmd_text = (first_segment.text or "").strip()
+        is_reply = isinstance(message[0], Reply)
+        # message中至少有一条是At消息, 且At的是bot
+        at_list = [
+            msg
+            for msg in message
+            if isinstance(msg, At) and str(msg.qq) == str(self_id)
+        ]
+        is_at_bot = len(at_list) > 0
+
+        text_segments = [msg for msg in message if isinstance(msg, Plain)]
+        if len(text_segments) > 0:
+            first_text_segment = text_segments[0]
+            cmd_text = (first_text_segment.text or "").strip()
 
             # 贴表情
-            if cmd_text.startswith("贴表情"):
+            if cmd_text.startswith("贴表情") and is_at_bot:  # 贴表情需要主动@bot
                 emoji_like_list = []
                 for msg in message:
                     if len(emoji_like_list) > 20:
@@ -133,7 +110,7 @@ async def group_message_handler(bot: Star, event: AiocqhttpMessageEvent):
                         # 提取所有emoji字符
                         emoji_id = re.findall(r"[^\u4e00-\u9fa5]", msg.text)
                         if emoji_id:
-                            emoji_qcid_map = _get_emoji_qcid_map()
+                            emoji_qcid_map = get_emoji_qcid_map()
                             for current_emoji_id in emoji_id:
                                 qcid = emoji_qcid_map.get(current_emoji_id, "")
                                 emoji_like_list.append(qcid)
@@ -147,14 +124,16 @@ async def group_message_handler(bot: Star, event: AiocqhttpMessageEvent):
                         style_name,
                         "bot.reply.emoji_like_failed",
                         {"nickname": nickname},
-                        "{nickname}不知道要贴什么表情喵w~",
+                        "{nickname}找不到要贴的表情喵w~",
                     )
                     yield event.plain_result(fail_text)
                     return
 
                 for emoji_id in emoji_like_list:
-                    await event.bot.set_msg_emoji_like(
-                        message_id=(event.message_obj or {}).message_id,  # pyright: ignore[reportAttributeAccessIssue]
+                    await event.bot.set_msg_emoji_like(  # pyright: ignore[reportAttributeAccessIssue]
+                        message_id=message[0].id
+                        if is_reply
+                        else event.message_obj.message_id,
                         emoji_id=emoji_id,
                         set=True,
                     )

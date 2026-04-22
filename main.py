@@ -1,7 +1,7 @@
 from astrbot.api.event import filter
 from astrbot.core.config import AstrBotConfig
 from astrbot.core.platform.astr_message_event import AstrMessageEvent
-from astrbot.core.star.base import Star
+from astrbot.core.star.base import Star, logger
 from astrbot.core.star.context import Context
 from astrbot.core.star.register import register_star as register
 
@@ -23,20 +23,34 @@ class MyPlugin(Star):
         data_path = get_plugin_data_path(self.name)
         init_db(data_path)
 
+    """
+    为所有处理添加异常捕获, 防止插件内容通过聊天平台上报
+    TODO: 将错误通过监控bot上报
+    """
+
     @filter.command("jrrp")
     async def jrrp(self, event: AstrMessageEvent):
-        async for result in send_jrrp_msg(self, event):
-            yield result
+        try:
+            async for result in send_jrrp_msg(self, event):
+                yield result
+        except Exception as e:
+            logger.error("jrrp error: %s", e)
 
     @filter.event_message_type(filter.EventMessageType.ALL)
     async def allMessageHandler(self, event: AstrMessageEvent):
-        async for result in message_handler(self, event):
-            yield result
+        try:
+            async for result in message_handler(self, event):
+                yield result
+        except Exception as e:
+            logger.error("allMessageHandler error: %s", e)
 
     @filter.event_message_type(filter.EventMessageType.GROUP_MESSAGE)
     async def groupMessageHandler(self, event: AstrMessageEvent):
-        async for result in group_message_handler(self, event):  # pyright: ignore[reportArgumentType]
-            yield result
+        try:
+            async for result in group_message_handler(self, event):  # pyright: ignore[reportArgumentType]
+                yield result
+        except Exception as e:
+            logger.error("groupMessageHandler error: %s", e)
 
     async def terminate(self):
         """可选择实现异步的插件销毁方法，当插件被卸载/停用时会调用。"""
