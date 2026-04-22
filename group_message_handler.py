@@ -1,5 +1,6 @@
 import re
 
+from astrbot.core.message.components import Face, Plain
 from astrbot.core.platform.sources.aiocqhttp.aiocqhttp_message_event import (
     AiocqhttpMessageEvent,
 )
@@ -84,15 +85,15 @@ async def group_message_handler(bot: Star, event: AiocqhttpMessageEvent):
     # 实现对指令的处理
     if message:
         first_segment = message[0]
-        if isinstance(first_segment, dict) and first_segment.get("type") == "text":
-            cmd_text = (first_segment.get("data", {}).get("text") or "").strip()
+        if isinstance(first_segment, Plain):
+            cmd_text = (first_segment.text or "").strip()
 
             # 贴表情
             if cmd_text == "贴表情":
                 second_seg = message[1] if len(message) >= 2 else None
                 face_id: object | None = None
-                if isinstance(second_seg, dict) and second_seg.get("type") == "face":
-                    raw_id = second_seg.get("data", {}).get("id")
+                if isinstance(second_seg, Face):
+                    raw_id = second_seg.id
                     if raw_id not in (None, ""):
                         face_id = raw_id
 
@@ -109,7 +110,7 @@ async def group_message_handler(bot: Star, event: AiocqhttpMessageEvent):
                     return
 
                 await event.bot.set_msg_emoji_like(
-                    message_id=event.message_id,
+                    message_id=(event.message_obj or {}).message_id,  # pyright: ignore[reportAttributeAccessIssue]
                     emoji_id=face_id,
                     set=True,
                 )
