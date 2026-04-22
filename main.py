@@ -35,7 +35,7 @@ class MyPlugin(Star):
 
     @filter.event_message_type(filter.EventMessageType.GROUP_MESSAGE)
     async def groupMessageHandler(self, event: AstrMessageEvent):
-        async for result in group_message_handler(self, event):
+        async for result in group_message_handler(self, event):  # pyright: ignore[reportArgumentType]
             yield result
 
     async def terminate(self):
